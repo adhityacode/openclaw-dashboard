@@ -30,7 +30,9 @@ function todayBounds(): { timeMin: string; timeMax: string } {
   });
   const localDate = formatter.format(now); // "YYYY-MM-DD"
   const timeMin = new Date(`${localDate}T00:00:00+07:00`).toISOString();
-  const timeMax = new Date(`${localDate}T23:59:59+07:00`).toISOString();
+  const nextDay = new Date(`${localDate}T00:00:00+07:00`);
+  nextDay.setDate(nextDay.getDate() + 1);
+  const timeMax = nextDay.toISOString();
   return { timeMin, timeMax };
 }
 
@@ -73,17 +75,20 @@ export async function getTodayEvents(): Promise<CalendarEvent[]> {
 
     const items = res.data.items ?? [];
 
-    return items.map((item) => {
+    return items.flatMap((item) => {
       const isAllDay = Boolean(item.start?.date && !item.start?.dateTime);
-      return {
-        id: item.id ?? Math.random().toString(36),
+      if (!isAllDay && (!item.start?.dateTime || !item.end?.dateTime)) {
+        return [];
+      }
+      return [{
+        id: item.id ?? `${item.summary ?? ""}-${item.start?.dateTime ?? item.start?.date ?? ""}`,
         title: item.summary ?? "(No title)",
         startTime: isAllDay ? "All day" : formatTime(item.start!.dateTime!),
         endTime: isAllDay ? "" : formatTime(item.end!.dateTime!),
         isAllDay,
         location: item.location ?? undefined,
         colorId: item.colorId ?? undefined,
-      };
+      }];
     });
   } catch (err) {
     console.warn("[calendar] Failed to fetch events:", err);
