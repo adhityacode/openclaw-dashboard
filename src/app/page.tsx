@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [payload, calendarEvents] = await Promise.all([
+  const [payload, calendarResult] = await Promise.all([
     getDashboardPayload(),
     getTodayEvents(),
   ]);
@@ -39,7 +39,7 @@ export default async function Home() {
           activeModel={payload.activeModel}
           modelOptions={payload.modelOptions}
           footerText={payload.footerText}
-          calendarEvents={calendarEvents}
+          calendarResult={calendarResult}
         />
       </section>
     </main>

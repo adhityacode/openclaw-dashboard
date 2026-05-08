@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { CalendarEvent } from "@/lib/calendar";
+import type { CalendarResult } from "@/lib/calendar";
 import { KpiCard } from "@/components/KpiCard";
 import { QuickActionButton } from "@/components/QuickActionButton";
 import { TimelineItem } from "@/components/TimelineItem";
@@ -23,7 +23,7 @@ export interface DashboardTabsProps {
   modelOptions: string[];
   footerText: string;
   // Personal data
-  calendarEvents: CalendarEvent[];
+  calendarResult: CalendarResult;
 }
 
 type TabId = "personal" | "openclaw";
@@ -72,7 +72,10 @@ export function DashboardTabs(props: DashboardTabsProps) {
             className="panel panel-calendar reveal"
             aria-label="Today's schedule"
           >
-            <CalendarWidget events={props.calendarEvents} />
+            <CalendarWidget
+              events={props.calendarResult.events}
+              errorMessage={props.calendarResult.ok ? undefined : props.calendarResult.error}
+            />
           </section>
 
           <div className="panel coming-soon-card reveal">
@@ -126,9 +129,9 @@ export function DashboardTabs(props: DashboardTabsProps) {
               <p>Live signal trail from orchestrator and gateway services.</p>
             </div>
             <ol className="timeline-list">
-              {props.timeline.map((event) => (
+              {props.timeline.map((event, index) => (
                 <TimelineItem
-                  key={`${event.time}-${event.title}`}
+                  key={`${index}-${event.time}-${event.title}`}
                   time={event.time}
                   title={event.title}
                   description={event.description}
@@ -152,6 +155,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
             </div>
             <div className="model-block">
               <label htmlFor="modelSelect">Active Model</label>
+              {/* Uncontrolled: model selection is display-only until a model-switching API is added */}
               <select
                 id="modelSelect"
                 name="modelSelect"
