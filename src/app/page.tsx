@@ -1,7 +1,4 @@
-import { KpiCard } from "@/components/KpiCard";
-import { QuickActionButton } from "@/components/QuickActionButton";
-import { TimelineItem } from "@/components/TimelineItem";
-import { CalendarWidget } from "@/components/CalendarWidget";
+import { DashboardTabs } from "@/components/DashboardTabs";
 import { getDashboardPayload } from "@/lib/openclaw";
 import { getTodayEvents } from "@/lib/calendar";
 
@@ -9,7 +6,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [payload, calendarEvents] = await Promise.all([
+  const [payload, calendarResult] = await Promise.all([
     getDashboardPayload(),
     getTodayEvents(),
   ]);
@@ -28,74 +25,22 @@ export default async function Home() {
           </p>
         </header>
 
-        <section className="kpi-wrap" aria-label="Key performance indicators">
-          <KpiCard
-            label="Active Channels"
-            value={payload.activeChannelsValue}
-            delta={payload.activeChannelsDelta}
-            tone={payload.activeChannelsTone}
-          />
-          <KpiCard
-            label="Pending Tasks"
-            value={payload.pendingTasksValue}
-            delta={payload.pendingTasksDelta}
-            tone={payload.pendingTasksTone}
-          />
-          <KpiCard
-            label="Gateway Uptime"
-            value={payload.gatewayUptimeValue}
-            delta={payload.gatewayUptimeDelta}
-            tone={payload.gatewayUptimeTone}
-          />
-        </section>
-
-        <section className="panel panel-timeline reveal" aria-label="Activity timeline">
-          <div className="section-head">
-            <h2>Activity Timeline</h2>
-            <p>Live signal trail from orchestrator and gateway services.</p>
-          </div>
-          <ol className="timeline-list">
-            {payload.timeline.map((event) => (
-              <TimelineItem
-                key={`${event.time}-${event.title}`}
-                time={event.time}
-                title={event.title}
-                description={event.description}
-              />
-            ))}
-          </ol>
-        </section>
-
-        <aside className="panel panel-side reveal" aria-label="Quick actions and model controls">
-          <div className="section-head">
-            <h2>Quick Actions</h2>
-            <p>Immediate controls for on-call response.</p>
-          </div>
-          <div className="quick-actions">
-            <QuickActionButton label="Run Diagnostics" />
-            <QuickActionButton label="Sync Gateways" />
-            <QuickActionButton label="Create Incident" />
-          </div>
-
-          <div className="model-block">
-            <label htmlFor="modelSelect">Active Model</label>
-            <select id="modelSelect" name="modelSelect" defaultValue={payload.activeModel}>
-              {payload.modelOptions.map((model) => (
-                <option key={model} value={model}>
-                  {model}
-                </option>
-              ))}
-            </select>
-          </div>
-        </aside>
-
-        <footer className="panel panel-footer reveal">
-          <p>{payload.footerText}</p>
-        </footer>
-
-        <section className="panel panel-calendar reveal" aria-label="Today's schedule">
-          <CalendarWidget events={calendarEvents} />
-        </section>
+        <DashboardTabs
+          activeChannelsValue={payload.activeChannelsValue}
+          activeChannelsDelta={payload.activeChannelsDelta}
+          activeChannelsTone={payload.activeChannelsTone}
+          pendingTasksValue={payload.pendingTasksValue}
+          pendingTasksDelta={payload.pendingTasksDelta}
+          pendingTasksTone={payload.pendingTasksTone}
+          gatewayUptimeValue={payload.gatewayUptimeValue}
+          gatewayUptimeDelta={payload.gatewayUptimeDelta}
+          gatewayUptimeTone={payload.gatewayUptimeTone}
+          timeline={payload.timeline}
+          activeModel={payload.activeModel}
+          modelOptions={payload.modelOptions}
+          footerText={payload.footerText}
+          calendarResult={calendarResult}
+        />
       </section>
     </main>
   );

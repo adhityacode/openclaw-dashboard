@@ -36,7 +36,11 @@ function todayBounds(): { timeMin: string; timeMax: string } {
   return { timeMin, timeMax };
 }
 
-export async function getTodayEvents(): Promise<CalendarEvent[]> {
+export type CalendarResult =
+  | { ok: true; events: CalendarEvent[] }
+  | { ok: false; events: CalendarEvent[]; error: string };
+
+export async function getTodayEvents(): Promise<CalendarResult> {
   const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -50,7 +54,7 @@ export async function getTodayEvents(): Promise<CalendarEvent[]> {
       "To get one, run the OAuth flow with the installed-app credential " +
       "(client_id from .env.local) and copy the refresh_token into .env.local."
     );
-    return [];
+    return { ok: false, events: [], error: "Google Calendar token not configured." };
   }
 
   try {
@@ -75,7 +79,7 @@ export async function getTodayEvents(): Promise<CalendarEvent[]> {
 
     const items = res.data.items ?? [];
 
-    return items.flatMap((item) => {
+    return { ok: true, events: items.flatMap((item) => {
       const isAllDay = Boolean(item.start?.date && !item.start?.dateTime);
       if (!isAllDay && (!item.start?.dateTime || !item.end?.dateTime)) {
         return [];
@@ -89,9 +93,9 @@ export async function getTodayEvents(): Promise<CalendarEvent[]> {
         location: item.location ?? undefined,
         colorId: item.colorId ?? undefined,
       }];
-    });
+    }) };
   } catch (err) {
     console.warn("[calendar] Failed to fetch events:", err);
-    return [];
+    return { ok: false, events: [], error: "Failed to fetch calendar events." };
   }
 }

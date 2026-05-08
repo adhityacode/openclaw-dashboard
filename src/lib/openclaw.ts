@@ -621,6 +621,10 @@ function deriveModelInfo(
     modelSet.add(activeModel);
   }
 
+  if (activeModel !== "Unavailable" && !modelSet.has(activeModel)) {
+    console.warn(`[openclaw] activeModel "${activeModel}" not found in modelOptions`);
+  }
+
   return {
     activeModel,
     modelOptions: Array.from(modelSet),

@@ -53,10 +53,7 @@ p {
   grid-template-columns: 2fr 1fr;
   grid-template-areas:
     "header header"
-    "kpi kpi"
-    "timeline side"
-    "calendar calendar"
-    "footer footer";
+    "tabs   tabs";
   gap: 18px;
 }
 
@@ -438,6 +435,89 @@ h1 {
   padding: 8px 0;
 }
 
+/* ── Tab switcher ────────────────────────────── */
+.dashboard-tabs {
+  grid-area: tabs;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  width: fit-content;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-radius: calc(var(--radius-lg) - 6px);
+  padding: 10px 22px;
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease;
+  white-space: nowrap;
+}
+
+.tab-btn:hover {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.tab-btn[data-active="true"] {
+  background: var(--brand);
+  color: #ffffff;
+}
+
+.tab-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand), white 35%);
+  outline-offset: 2px;
+}
+
+/* Hide inactive tab panels (explicit for specificity safety) */
+.tab-content[hidden] {
+  display: none;
+}
+
+/* ── OpenClaw tab inner grid ─────────────────── */
+.openclaw-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-areas:
+    "kpi      kpi"
+    "timeline side"
+    "footer   footer";
+  gap: 18px;
+}
+
+/* ── Personal tab inner grid ─────────────────── */
+.personal-grid {
+  display: grid;
+  gap: 18px;
+}
+
+/* ── Coming soon placeholder ─────────────────── */
+.coming-soon-card {
+  padding: 24px;
+}
+
+.coming-soon-card p:last-child {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 @media (max-width: 960px) {
   .dashboard-shell {
     padding: 20px;
@@ -447,15 +527,29 @@ h1 {
     grid-template-columns: 1fr;
     grid-template-areas:
       "header"
+      "tabs";
+  }
+
+  .openclaw-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
       "kpi"
       "timeline"
       "side"
-      "calendar"
       "footer";
   }
 
   .kpi-wrap {
     grid-template-columns: 1fr;
+  }
+
+  .tab-bar {
+    width: 100%;
+  }
+
+  .tab-btn {
+    flex: 1;
+    justify-content: center;
   }
 
   .panel-header {
