@@ -2,10 +2,21 @@
 
 import { useState } from "react";
 import type { CalendarResult } from "@/lib/calendar";
+import type { GmailResult } from "@/lib/gmail";
+import type { TasksResult } from "@/lib/gtasks";
+import type { WeatherResult } from "@/lib/weather";
+import type { AiAdviceResult } from "@/lib/ai-advice";
 import { KpiCard } from "@/components/KpiCard";
 import { QuickActionButton } from "@/components/QuickActionButton";
 import { TimelineItem } from "@/components/TimelineItem";
 import { CalendarWidget } from "@/components/CalendarWidget";
+import { GmailWidget } from "@/components/GmailWidget";
+import { TasksWidget } from "@/components/TasksWidget";
+import { WeatherWidget } from "@/components/WeatherWidget";
+import { QuickNotesWidget } from "@/components/QuickNotesWidget";
+import { HabitTrackerWidget } from "@/components/HabitTrackerWidget";
+import { DailySummaryWidget } from "@/components/DailySummaryWidget";
+import { AiAdviceWidget } from "@/components/AiAdviceWidget";
 
 export interface DashboardTabsProps {
   // OpenClaw data
@@ -24,12 +35,19 @@ export interface DashboardTabsProps {
   footerText: string;
   // Personal data
   calendarResult: CalendarResult;
+  gmailResult: GmailResult;
+  tasksResult: TasksResult;
+  weatherResult: WeatherResult;
+  aiAdviceResult: AiAdviceResult;
 }
 
 type TabId = "personal" | "openclaw";
 
 export function DashboardTabs(props: DashboardTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>("personal");
+
+  const weatherData = props.weatherResult.ok ? props.weatherResult.data : null;
+  const weatherError = props.weatherResult.ok ? undefined : props.weatherResult.error;
 
   return (
     <div className="dashboard-tabs">
@@ -68,22 +86,60 @@ export function DashboardTabs(props: DashboardTabsProps) {
         hidden={activeTab !== "personal"}
       >
         <div className="personal-grid">
-          <section
-            className="panel panel-calendar reveal"
-            aria-label="Today's schedule"
-          >
+
+          {/* Row 1: AI Advice (full width) */}
+          <section className="panel panel-ai reveal" aria-label="AI daily advice">
+            <AiAdviceWidget
+              advice={props.aiAdviceResult.ok ? props.aiAdviceResult.advice : null}
+              errorMessage={props.aiAdviceResult.ok ? undefined : props.aiAdviceResult.error}
+            />
+          </section>
+
+          {/* Row 2: Daily Summary + Weather */}
+          <section className="panel panel-summary reveal" aria-label="Daily summary">
+            <DailySummaryWidget
+              calendarEvents={props.calendarResult.events}
+              tasks={props.tasksResult.tasks}
+              weather={weatherData}
+            />
+          </section>
+
+          <section className="panel panel-weather reveal" aria-label="Weather">
+            <WeatherWidget data={weatherData} errorMessage={weatherError} />
+          </section>
+
+          {/* Row 3: Calendar + Gmail */}
+          <section className="panel panel-calendar reveal" aria-label="Today's schedule">
             <CalendarWidget
               events={props.calendarResult.events}
               errorMessage={props.calendarResult.ok ? undefined : props.calendarResult.error}
             />
           </section>
 
-          <div className="panel coming-soon-card reveal">
-            <p className="eyebrow">Coming Soon</p>
-            <p>
-              More personal widgets — Gmail inbox, tasks, weather, and more.
-            </p>
-          </div>
+          <section className="panel panel-gmail reveal" aria-label="Gmail inbox">
+            <GmailWidget
+              messages={props.gmailResult.messages}
+              errorMessage={props.gmailResult.ok ? undefined : props.gmailResult.error}
+            />
+          </section>
+
+          {/* Row 4: Tasks + Quick Notes */}
+          <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+            <TasksWidget
+              tasks={props.tasksResult.tasks}
+              errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
+            />
+          </section>
+
+          <section className="panel panel-notes reveal" aria-label="Quick notes">
+            <QuickNotesWidget />
+          </section>
+
+          {/* Row 5: Habit Tracker (full width) */}
+          <section className="panel panel-habits reveal" aria-label="Habit tracker">
+            <HabitTrackerWidget />
+          </section>
+
         </div>
       </div>
 
@@ -96,10 +152,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
         hidden={activeTab !== "openclaw"}
       >
         <div className="openclaw-grid">
-          <section
-            className="kpi-wrap"
-            aria-label="Key performance indicators"
-          >
+          <section className="kpi-wrap" aria-label="Key performance indicators">
             <KpiCard
               label="Active Channels"
               value={props.activeChannelsValue}
@@ -120,10 +173,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          <section
-            className="panel panel-timeline reveal"
-            aria-label="Activity timeline"
-          >
+          <section className="panel panel-timeline reveal" aria-label="Activity timeline">
             <div className="section-head">
               <h2>Activity Timeline</h2>
               <p>Live signal trail from orchestrator and gateway services.</p>
@@ -140,10 +190,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
             </ol>
           </section>
 
-          <aside
-            className="panel panel-side reveal"
-            aria-label="Quick actions and model controls"
-          >
+          <aside className="panel panel-side reveal" aria-label="Quick actions and model controls">
             <div className="section-head">
               <h2>Quick Actions</h2>
               <p>Immediate controls for on-call response.</p>
@@ -155,16 +202,9 @@ export function DashboardTabs(props: DashboardTabsProps) {
             </div>
             <div className="model-block">
               <label htmlFor="modelSelect">Active Model</label>
-              {/* Uncontrolled: model selection is display-only until a model-switching API is added */}
-              <select
-                id="modelSelect"
-                name="modelSelect"
-                defaultValue={props.activeModel}
-              >
+              <select id="modelSelect" name="modelSelect" defaultValue={props.activeModel}>
                 {props.modelOptions.map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
+                  <option key={model} value={model}>{model}</option>
                 ))}
               </select>
             </div>
