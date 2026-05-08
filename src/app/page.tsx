@@ -1,13 +1,18 @@
 import { KpiCard } from "@/components/KpiCard";
 import { QuickActionButton } from "@/components/QuickActionButton";
 import { TimelineItem } from "@/components/TimelineItem";
+import { CalendarWidget } from "@/components/CalendarWidget";
 import { getDashboardPayload } from "@/lib/openclaw";
+import { getTodayEvents } from "@/lib/calendar";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const payload = await getDashboardPayload();
+  const [payload, calendarEvents] = await Promise.all([
+    getDashboardPayload(),
+    getTodayEvents(),
+  ]);
 
   return (
     <main className="dashboard-shell">
@@ -87,6 +92,10 @@ export default async function Home() {
         <footer className="panel panel-footer reveal">
           <p>{payload.footerText}</p>
         </footer>
+
+        <section className="panel panel-calendar reveal" aria-label="Today's schedule">
+          <CalendarWidget events={calendarEvents} />
+        </section>
       </section>
     </main>
   );

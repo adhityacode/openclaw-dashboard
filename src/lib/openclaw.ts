@@ -12,6 +12,19 @@ type ExecResult = {
   capturedAt: number;
 };
 
+type CacheKey = "health" | "tasks" | "sessions" | "config";
+
+type LastKnownGoodCacheEntry = {
+  data: unknown;
+  capturedAt: number;
+  cachedAt: number;
+};
+
+type ResolvedExecResult = ExecResult & {
+  stale: boolean;
+  staleAgeMs?: number;
+};
+
 export interface DashboardTimelineItem {
   time: string;
   title: string;
@@ -43,6 +56,9 @@ const OPENCLAW_TASKS_TIMEOUT_MS = 5000;
 const OPENCLAW_SESSIONS_TIMEOUT_MS = 3500;
 const OPENCLAW_SESSIONS_LIMIT = 5;
 const MAX_TIMELINE_ENTRIES = 6;
+const LAST_KNOWN_GOOD_TTL_MS = 3 * 60_000;
+
+const lastKnownGoodCache: Partial<Record<CacheKey, LastKnownGoodCacheEntry>> = {};
 
 function isRecord(value: unknown): value is JsonObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -165,6 +181,66 @@ function getCommandTimeoutMs(command: "health" | "tasks" | "sessions"): number {
     case "sessions":
       return OPENCLAW_SESSIONS_TIMEOUT_MS;
   }
+}
+
+function updateLastKnownGoodCache(key: CacheKey, result: ExecResult): void {
+  if (!result.ok || result.data === undefined) {
+    return;
+  }
+
+  lastKnownGoodCache[key] = {
+    data: result.data,
+    capturedAt: result.capturedAt,
+    cachedAt: Date.now(),
+  };
+}
+
+function resolveWithLastKnownGood(key: CacheKey, result: ExecResult, now: number): ResolvedExecResult {
+  if (result.ok) {
+    updateLastKnownGoodCache(key, result);
+    return {
+      ...result,
+      stale: false,
+    };
+  }
+
+  const cachedEntry = lastKnownGoodCache[key];
+  if (!cachedEntry) {
+    return {
+      ...result,
+      stale: false,
+    };
+  }
+
+  const staleAgeMs = now - cachedEntry.cachedAt;
+  if (staleAgeMs > LAST_KNOWN_GOOD_TTL_MS) {
+    return {
+      ...result,
+      stale: false,
+    };
+  }
+
+  return {
+    ok: true,
+    data: cachedEntry.data,
+    error: result.error,
+    capturedAt: cachedEntry.capturedAt,
+    stale: true,
+    staleAgeMs,
+  };
+}
+
+function formatStaleAge(ageMs: number): string {
+  const totalMinutes = Math.max(0, Math.floor(ageMs / 60_000));
+  if (totalMinutes < 1) {
+    return "under 1 minute";
+  }
+
+  if (totalMinutes === 1) {
+    return "1 minute";
+  }
+
+  return `${totalMinutes} minutes`;
 }
 
 async function runOpenClawJson(
@@ -554,22 +630,37 @@ function deriveModelInfo(
 
 export async function getDashboardPayload(): Promise<DashboardPayload> {
   const now = Date.now();
-  const [healthResult, tasksResult, sessionsResult, configResult] = await Promise.all([
+  const [liveHealthResult, liveTasksResult, liveSessionsResult, liveConfigResult] = await Promise.all([
     runOpenClawJson("health"),
     runOpenClawJson("tasks"),
     runOpenClawJson("sessions", ["--limit", String(OPENCLAW_SESSIONS_LIMIT)]),
     readOpenClawConfig(),
   ]);
 
+  const healthResult = resolveWithLastKnownGood("health", liveHealthResult, now);
+  const tasksResult = resolveWithLastKnownGood("tasks", liveTasksResult, now);
+  const sessionsResult = resolveWithLastKnownGood("sessions", liveSessionsResult, now);
+  const configResult = resolveWithLastKnownGood("config", liveConfigResult, now);
+
   const health = asRecord(healthResult.data);
   const config = asRecord(configResult.data);
 
   const healthOk = asBoolean(health?.ok);
   const eventLoopDegraded = asBoolean(asRecord(health?.eventLoop)?.degraded) ?? false;
+  const staleSources = [
+    healthResult.stale ? "health" : undefined,
+    tasksResult.stale ? "tasks" : undefined,
+    sessionsResult.stale ? "sessions" : undefined,
+    configResult.stale ? "config" : undefined,
+  ].filter((value): value is CacheKey => value !== undefined);
+  const hasStaleFallback = staleSources.length > 0;
 
   let statusText = "Operational data unavailable";
   let healthTone: HealthTone = "warning";
-  if (healthResult.ok && healthOk === true) {
+  if (hasStaleFallback) {
+    statusText = "Using recent cached data";
+    healthTone = eventLoopDegraded || healthOk === false ? "warning" : "neutral";
+  } else if (healthResult.ok && healthOk === true) {
     if (eventLoopDegraded) {
       statusText = "Performance degradation detected";
       healthTone = "warning";
@@ -638,10 +729,27 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
   const modelInfo = deriveModelInfo(sessionsResult.data, config);
 
   const failureNotes = [
-    healthResult.ok ? undefined : healthResult.error,
-    tasksResult.ok ? undefined : tasksResult.error,
-    sessionsResult.ok ? undefined : sessionsResult.error,
-    configResult.ok ? undefined : configResult.error,
+    !liveHealthResult.ok && !healthResult.stale ? liveHealthResult.error : undefined,
+    !liveTasksResult.ok && !tasksResult.stale ? liveTasksResult.error : undefined,
+    !liveSessionsResult.ok && !sessionsResult.stale ? liveSessionsResult.error : undefined,
+    !liveConfigResult.ok && !configResult.stale ? liveConfigResult.error : undefined,
+  ]
+    .filter((note): note is string => typeof note === "string" && note.length > 0)
+    .join(" | ");
+
+  const staleNotes = [
+    healthResult.stale
+      ? `health fallback from ${formatStaleAge(healthResult.staleAgeMs ?? 0)} ago`
+      : undefined,
+    tasksResult.stale
+      ? `tasks fallback from ${formatStaleAge(tasksResult.staleAgeMs ?? 0)} ago`
+      : undefined,
+    sessionsResult.stale
+      ? `sessions fallback from ${formatStaleAge(sessionsResult.staleAgeMs ?? 0)} ago`
+      : undefined,
+    configResult.stale
+      ? `config fallback from ${formatStaleAge(configResult.staleAgeMs ?? 0)} ago`
+      : undefined,
   ]
     .filter((note): note is string => typeof note === "string" && note.length > 0)
     .join(" | ");
@@ -649,6 +757,10 @@ export async function getDashboardPayload(): Promise<DashboardPayload> {
   let footerText = "OpenClaw dashboard using health and tasks CLI data; model sourced from recent sessions or local config.";
   if (!healthResult.ok && !tasksResult.ok && modelInfo.source === "unavailable" && failureNotes) {
     footerText = `OpenClaw live data unavailable: ${failureNotes}.`;
+  } else if (staleNotes && failureNotes) {
+    footerText = `OpenClaw dashboard using stale cached data for ${staleSources.join(", ")}; ${staleNotes}. Live refresh issues: ${failureNotes}.`;
+  } else if (staleNotes) {
+    footerText = `OpenClaw dashboard using stale cached data for ${staleSources.join(", ")}; ${staleNotes}.`;
   } else if (failureNotes) {
     footerText = `OpenClaw dashboard using partial data sources (health, tasks, sessions, config): ${failureNotes}.`;
   }
