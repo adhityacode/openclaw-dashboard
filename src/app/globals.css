@@ -571,3 +571,561 @@ h1 {
     transition: none;
   }
 }
+
+/* ── Personal grid layout ────────────────────── */
+.personal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "ai       ai"
+    "summary  weather"
+    "calendar gmail"
+    "tasks    notes"
+    "habits   habits";
+  gap: 18px;
+}
+
+.panel-ai      { grid-area: ai; }
+.panel-summary { grid-area: summary; }
+.panel-weather { grid-area: weather; }
+.panel-calendar { grid-area: calendar; }
+.panel-gmail   { grid-area: gmail; }
+.panel-tasks   { grid-area: tasks; }
+.panel-notes   { grid-area: notes; }
+.panel-habits  { grid-area: habits; }
+
+/* ── Shared widget primitives ────────────────── */
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.widget-header h2 {
+  font-size: 1.2rem;
+}
+
+.widget-empty {
+  color: var(--muted);
+  font-size: 0.92rem;
+  padding: 4px 0;
+}
+
+/* ── AI Advice widget ────────────────────────── */
+.ai-advice-widget { padding: 22px; }
+
+.ai-badge {
+  margin-left: auto;
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid #c1e8f5;
+  border-radius: 999px;
+  padding: 2px 9px;
+  letter-spacing: 0.06em;
+}
+
+.advice-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.advice-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.93rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.advice-dot {
+  color: var(--brand);
+  font-size: 0.75rem;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Daily Summary widget ────────────────────── */
+.summary-widget { padding: 22px; }
+
+.summary-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fffefb;
+  text-align: center;
+}
+
+.summary-stat[data-tone="good"] {
+  border-color: #cdebdc;
+  background: linear-gradient(180deg, #f9fffb, #ffffff);
+}
+
+.summary-stat[data-tone="warning"] {
+  border-color: #f1d9a6;
+  background: #fffbf0;
+}
+
+.summary-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.summary-label {
+  margin-top: 4px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.summary-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  border: 1px solid #c1e8f5;
+  margin-top: 4px;
+}
+
+.summary-next-label {
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--brand);
+  background: #d0eef7;
+  border-radius: 999px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.summary-alert {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #ba4a2f;
+  background: #fff0ea;
+  border: 1px solid #efc7b7;
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+/* ── Weather widget ──────────────────────────── */
+.weather-widget { padding: 22px; }
+
+.weather-current {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.weather-emoji {
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.weather-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.weather-temp {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.weather-desc {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.weather-details {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-align: right;
+}
+
+.weather-hourly {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.weather-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 48px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffefb;
+  flex-shrink: 0;
+}
+
+.slot-hour {
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.slot-emoji { font-size: 1.1rem; }
+
+.slot-temp {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ── Gmail widget ────────────────────────────── */
+.gmail-widget { padding: 22px; }
+
+.unread-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.gmail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.gmail-item {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffefb;
+}
+
+.gmail-item[data-unread="true"] {
+  border-color: #c1e8f5;
+  background: var(--brand-soft);
+}
+
+.gmail-from {
+  grid-row: 1;
+  grid-column: 1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gmail-subject {
+  grid-row: 1;
+  grid-column: 2;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gmail-snippet {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Tasks widget ────────────────────────────── */
+.tasks-widget { padding: 22px; }
+
+.tasks-count {
+  margin-left: auto;
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.tasks-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.task-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffefb;
+}
+
+.task-item--overdue {
+  border-color: #efc7b7;
+  background: #fff5f2;
+}
+
+.task-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.task-due {
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.overdue-label {
+  color: #ba4a2f;
+}
+
+.task-list-tag {
+  font-size: 0.72rem;
+  color: var(--brand);
+  background: var(--brand-soft);
+  border: 1px solid #c1e8f5;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+/* ── Quick Notes widget ──────────────────────── */
+.notes-widget { padding: 22px; display: flex; flex-direction: column; }
+
+.notes-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.notes-saved {
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.75rem;
+  color: var(--good);
+}
+
+.notes-clear-btn {
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.notes-clear-btn:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.notes-textarea {
+  flex: 1;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.88rem;
+  color: var(--ink);
+  background: #fffefb;
+  line-height: 1.6;
+  min-height: 120px;
+}
+
+.notes-textarea:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand), white 35%);
+  outline-offset: 2px;
+}
+
+/* ── Habit Tracker widget ────────────────────── */
+.habits-widget { padding: 22px; }
+
+.habits-progress {
+  font-family: var(--font-mono), "Consolas", monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.habits-edit-btn {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: var(--muted);
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.habits-edit-btn:hover,
+.habits-edit-btn[aria-pressed="true"] {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.habits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.habit-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fffefb;
+}
+
+.habit-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  cursor: pointer;
+  font-size: 0.92rem;
+}
+
+.habit-label input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--brand);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.habit-label span[data-done="true"] {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.habit-remove-btn {
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.habit-remove-btn:hover {
+  color: #ba4a2f;
+  background: #fff0ea;
+}
+
+.habit-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.habit-add-input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.88rem;
+  font-family: var(--font-display), "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: #fffefb;
+}
+
+.habit-add-input:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand), white 35%);
+  outline-offset: 2px;
+}
+
+.habit-add-btn {
+  border: 1px solid var(--brand);
+  background: var(--brand-soft);
+  color: var(--brand);
+  border-radius: 10px;
+  padding: 8px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.habit-add-btn:hover {
+  background: var(--brand);
+  color: #fff;
+}
+
+/* ── Personal grid responsive ────────────────── */
+@media (max-width: 960px) {
+  .personal-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "ai"
+      "summary"
+      "weather"
+      "calendar"
+      "gmail"
+      "tasks"
+      "notes"
+      "habits";
+  }
+}
