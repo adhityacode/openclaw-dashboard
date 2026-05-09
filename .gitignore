@@ -60,3 +60,6 @@ ecosystem.config.js
 # temp files
 temp_*.txt
 *.tmp
+
+# whatsapp message store (local data, not for version control)
+/data/whatsapp-messages.json
