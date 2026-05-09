@@ -1,15 +1,37 @@
 import { DashboardTabs } from "@/components/DashboardTabs";
 import { getDashboardPayload } from "@/lib/openclaw";
 import { getTodayEvents } from "@/lib/calendar";
+import { getGmailInbox, filterImportantMessages } from "@/lib/gmail";
+import { getPendingTasks } from "@/lib/gtasks";
+import { getWeather } from "@/lib/weather";
+import { getAiAdvice } from "@/lib/ai-advice";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [payload, calendarResult] = await Promise.all([
+  // Fetch all data sources in parallel
+  const [payload, calendarResult, gmailResult, tasksResult, weatherResult] = await Promise.all([
     getDashboardPayload(),
     getTodayEvents(),
+    getGmailInbox(20),
+    getPendingTasks(10),
+    getWeather(),
   ]);
+
+  // Run email filter and AI advice in parallel — they're independent
+  const [importantIds, aiResult] = await Promise.all([
+    filterImportantMessages(gmailResult.messages),
+    // Advice uses all raw messages for context; filter result applied below
+    getAiAdvice({
+      calendarEvents: calendarResult.events,
+      gmailMessages: gmailResult.messages,
+      tasks: tasksResult.tasks,
+      weather: weatherResult.ok ? weatherResult.data : null,
+    }),
+  ]);
+
+  const filteredMessages = gmailResult.messages.filter((m) => importantIds.has(m.id));
 
   return (
     <main className="dashboard-shell">
@@ -40,6 +62,10 @@ export default async function Home() {
           modelOptions={payload.modelOptions}
           footerText={payload.footerText}
           calendarResult={calendarResult}
+          gmailResult={{ ...gmailResult, messages: filteredMessages }}
+          tasksResult={tasksResult}
+          weatherResult={weatherResult}
+          aiAdviceResult={aiResult}
         />
       </section>
     </main>
