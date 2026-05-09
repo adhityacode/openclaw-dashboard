@@ -3,8 +3,9 @@ import { google } from "googleapis";
 export interface CalendarEvent {
   id: string;
   title: string;
-  startTime: string; // "09:00" or "All day"
-  endTime: string;   // "10:00" or ""
+  date: string;        // "YYYY-MM-DD" in Asia/Bangkok tz
+  startTime: string;   // "09:00" or "All day"
+  endTime: string;     // "10:00" or ""
   isAllDay: boolean;
   location?: string;
   colorId?: string;
@@ -20,7 +21,16 @@ function formatTime(dateTimeStr: string): string {
   });
 }
 
-function todayBounds(): { timeMin: string; timeMax: string } {
+function formatDate(dateTimeStr: string): string {
+  return new Date(dateTimeStr).toLocaleDateString("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }); // "YYYY-MM-DD"
+}
+
+function weekBounds(): { timeMin: string; timeMax: string } {
   const now = new Date();
   const formatter = new Intl.DateTimeFormat("en-CA", {
     timeZone: TZ,
@@ -30,17 +40,16 @@ function todayBounds(): { timeMin: string; timeMax: string } {
   });
   const localDate = formatter.format(now); // "YYYY-MM-DD"
   const timeMin = new Date(`${localDate}T00:00:00+07:00`).toISOString();
-  const nextDay = new Date(`${localDate}T00:00:00+07:00`);
-  nextDay.setDate(nextDay.getDate() + 1);
-  const timeMax = nextDay.toISOString();
-  return { timeMin, timeMax };
+  const timeMax = new Date(`${localDate}T00:00:00+07:00`);
+  timeMax.setDate(timeMax.getDate() + 7);
+  return { timeMin, timeMax: timeMax.toISOString() };
 }
 
 export type CalendarResult =
   | { ok: true; events: CalendarEvent[] }
   | { ok: false; events: CalendarEvent[]; error: string };
 
-export async function getTodayEvents(): Promise<CalendarResult> {
+async function getUpcomingEvents(): Promise<CalendarResult> {
   const {
     GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_SECRET,
@@ -66,7 +75,7 @@ export async function getTodayEvents(): Promise<CalendarResult> {
     auth.setCredentials({ refresh_token: GOOGLE_REFRESH_TOKEN });
 
     const calendar = google.calendar({ version: "v3", auth });
-    const { timeMin, timeMax } = todayBounds();
+    const { timeMin, timeMax } = weekBounds();
 
     const res = await calendar.events.list({
       calendarId: "primary",
@@ -74,7 +83,7 @@ export async function getTodayEvents(): Promise<CalendarResult> {
       timeMax,
       singleEvents: true,
       orderBy: "startTime",
-      maxResults: 20,
+      maxResults: 50,
     });
 
     const items = res.data.items ?? [];
@@ -87,6 +96,9 @@ export async function getTodayEvents(): Promise<CalendarResult> {
       return [{
         id: item.id ?? `${item.summary ?? ""}-${item.start?.dateTime ?? item.start?.date ?? ""}`,
         title: item.summary ?? "(No title)",
+        date: isAllDay
+          ? (item.start?.date ?? "")
+          : formatDate(item.start!.dateTime!),
         startTime: isAllDay ? "All day" : formatTime(item.start!.dateTime!),
         endTime: isAllDay ? "" : formatTime(item.end!.dateTime!),
         isAllDay,
@@ -99,3 +111,6 @@ export async function getTodayEvents(): Promise<CalendarResult> {
     return { ok: false, events: [], error: "Failed to fetch calendar events." };
   }
 }
+
+// Backward-compatible alias
+export const getTodayEvents = getUpcomingEvents;
