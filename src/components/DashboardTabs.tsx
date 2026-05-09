@@ -18,6 +18,7 @@ import { HabitTrackerWidget } from "@/components/HabitTrackerWidget";
 import { DailySummaryWidget } from "@/components/DailySummaryWidget";
 import { AiAdviceWidget } from "@/components/AiAdviceWidget";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
+import { PersonalGrid } from "@/components/PersonalGrid";
 
 export interface DashboardTabsProps {
   // OpenClaw data
@@ -86,14 +87,15 @@ export function DashboardTabs(props: DashboardTabsProps) {
         className="tab-content"
         hidden={activeTab !== "personal"}
       >
-        <div className="personal-grid">
+        <PersonalGrid widgetIds={["weather","ai-advice","daily-sum","tasks","calendar","gmail","whatsapp","notes","habits"]}>
 
-          {/* Row 1: Weather | AI Advice | Daily Summary | Tasks */}
           <section className="panel panel-weather reveal" aria-label="Weather">
+            <div className="widget-drag-handle" />
             <WeatherWidget data={weatherData} errorMessage={weatherError} />
           </section>
 
           <section className="panel panel-ai-advice reveal" aria-label="AI daily advice">
+            <div className="widget-drag-handle" />
             <AiAdviceWidget
               advice={props.aiAdviceResult.ok ? props.aiAdviceResult.advice : null}
               errorMessage={props.aiAdviceResult.ok ? undefined : props.aiAdviceResult.error}
@@ -101,6 +103,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
           </section>
 
           <section className="panel panel-daily-sum reveal" aria-label="Daily summary">
+            <div className="widget-drag-handle" />
             <DailySummaryWidget
               calendarEvents={props.calendarResult.events}
               tasks={props.tasksResult.tasks}
@@ -109,14 +112,15 @@ export function DashboardTabs(props: DashboardTabsProps) {
           </section>
 
           <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+            <div className="widget-drag-handle" />
             <TasksWidget
               tasks={props.tasksResult.tasks}
               errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
             />
           </section>
 
-          {/* Row 2: Calendar (span 2) | Gmail (span 2) */}
           <section className="panel panel-calendar reveal" aria-label="Today's schedule">
+            <div className="widget-drag-handle" />
             <CalendarWidget
               events={props.calendarResult.events}
               errorMessage={props.calendarResult.ok ? undefined : props.calendarResult.error}
@@ -124,26 +128,29 @@ export function DashboardTabs(props: DashboardTabsProps) {
           </section>
 
           <section className="panel panel-gmail reveal" aria-label="Gmail inbox">
+            <div className="widget-drag-handle" />
             <GmailWidget
               messages={props.gmailResult.messages}
               errorMessage={props.gmailResult.ok ? undefined : props.gmailResult.error}
             />
           </section>
 
-          {/* Row 3: WhatsApp | Notes | Habits (span 2) */}
           <section className="panel panel-whatsapp reveal" aria-label="WhatsApp messages">
+            <div className="widget-drag-handle" />
             <WhatsAppWidget />
           </section>
 
           <section className="panel panel-notes reveal" aria-label="Quick notes">
+            <div className="widget-drag-handle" />
             <QuickNotesWidget />
           </section>
 
           <section className="panel panel-habits reveal" aria-label="Habit tracker">
+            <div className="widget-drag-handle" />
             <HabitTrackerWidget />
           </section>
 
-        </div>
+        </PersonalGrid>
       </div>
 
       {/* ── OpenClaw tab panel ───────────────────────── */}
