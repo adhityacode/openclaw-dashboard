@@ -17,6 +17,7 @@ import { QuickNotesWidget } from "@/components/QuickNotesWidget";
 import { HabitTrackerWidget } from "@/components/HabitTrackerWidget";
 import { DailySummaryWidget } from "@/components/DailySummaryWidget";
 import { AiAdviceWidget } from "@/components/AiAdviceWidget";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 
 export interface DashboardTabsProps {
   // OpenClaw data
@@ -129,7 +130,11 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          {/* Row 3: Notes (span 2) | Habits (span 2) */}
+          {/* Row 3: WhatsApp | Notes | Habits (span 2) */}
+          <section className="panel panel-whatsapp reveal" aria-label="WhatsApp messages">
+            <WhatsAppWidget />
+          </section>
+
           <section className="panel panel-notes reveal" aria-label="Quick notes">
             <QuickNotesWidget />
           </section>
