@@ -47,3 +47,16 @@ service-account*.json
 .env.development
 .env.production
 secrets/
+
+# utility scripts with embedded credentials
+get-refresh-token.mjs
+
+# infrastructure / ops files
+Caddyfile
+dns-server.mjs
+setup-dns-task.ps1
+ecosystem.config.js
+
+# temp files
+temp_*.txt
+*.tmp

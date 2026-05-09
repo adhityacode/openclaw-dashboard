@@ -30,33 +30,49 @@ export function TasksWidget({ tasks, errorMessage }: Props) {
         <p className="widget-empty">All clear — no pending tasks</p>
       )}
 
-      {overdue.length > 0 && (
-        <ul className="tasks-list">
-          {overdue.map((t) => (
-            <li key={t.id} className="task-item task-item--overdue">
-              <span className="task-title">{t.title}</span>
-              <span className="task-meta">
-                {t.due && <span className="task-due overdue-label">Overdue · {formatDue(t.due)}</span>}
-                <span className="task-list-tag">{t.listTitle}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+      <div className="tasks-list-scroll">
+        {overdue.length > 0 && (
+          <ul className="tasks-list">
+            {overdue.map((t) => (
+              <li key={t.id} className="task-item task-item--overdue">
+                <a
+                  href="https://tasks.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="task-link"
+                >
+                  <span className="task-title">{t.title}</span>
+                  <span className="task-meta">
+                    {t.due && <span className="task-due overdue-label">Overdue · {formatDue(t.due)}</span>}
+                    <span className="task-list-tag">{t.listTitle}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
 
-      {upcoming.length > 0 && (
-        <ul className="tasks-list">
-          {upcoming.map((t) => (
-            <li key={t.id} className="task-item">
-              <span className="task-title">{t.title}</span>
-              <span className="task-meta">
-                {t.due && <span className="task-due">{formatDue(t.due)}</span>}
-                <span className="task-list-tag">{t.listTitle}</span>
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+        {upcoming.length > 0 && (
+          <ul className="tasks-list">
+            {upcoming.map((t) => (
+              <li key={t.id} className="task-item">
+                <a
+                  href="https://tasks.google.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="task-link"
+                >
+                  <span className="task-title">{t.title}</span>
+                  <span className="task-meta">
+                    {t.due && <span className="task-due">{formatDue(t.due)}</span>}
+                    <span className="task-list-tag">{t.listTitle}</span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }

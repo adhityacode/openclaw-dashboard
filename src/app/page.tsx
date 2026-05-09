@@ -1,7 +1,7 @@
 import { DashboardTabs } from "@/components/DashboardTabs";
 import { getDashboardPayload } from "@/lib/openclaw";
 import { getTodayEvents } from "@/lib/calendar";
-import { getGmailInbox } from "@/lib/gmail";
+import { getGmailInbox, filterImportantMessages } from "@/lib/gmail";
 import { getPendingTasks } from "@/lib/gtasks";
 import { getWeather } from "@/lib/weather";
 import { getAiAdvice } from "@/lib/ai-advice";
@@ -19,18 +19,19 @@ export default async function Home() {
     getWeather(),
   ]);
 
-  // Single AI call: filters emails + generates advice simultaneously
-  const aiResult = await getAiAdvice({
-    calendarEvents: calendarResult.events,
-    rawGmailMessages: gmailResult.messages,
-    tasks: tasksResult.tasks,
-    weather: weatherResult.ok ? weatherResult.data : null,
-  });
+  // Run email filter and AI advice in parallel — they're independent
+  const [importantIds, aiResult] = await Promise.all([
+    filterImportantMessages(gmailResult.messages),
+    // Advice uses all raw messages for context; filter result applied below
+    getAiAdvice({
+      calendarEvents: calendarResult.events,
+      gmailMessages: gmailResult.messages,
+      tasks: tasksResult.tasks,
+      weather: weatherResult.ok ? weatherResult.data : null,
+    }),
+  ]);
 
-  // Apply the AI's email filter to the raw messages
-  const filteredMessages = gmailResult.messages.filter((m) =>
-    aiResult.importantMessageIds.has(m.id)
-  );
+  const filteredMessages = gmailResult.messages.filter((m) => importantIds.has(m.id));
 
   return (
     <main className="dashboard-shell">

@@ -87,16 +87,15 @@ export function DashboardTabs(props: DashboardTabsProps) {
       >
         <div className="personal-grid">
 
-          {/* Row 1: AI Advice (full width) */}
-          <section className="panel panel-ai reveal" aria-label="AI daily advice">
+          {/* Row 1: AI Advice | Daily Summary | Weather */}
+          <section className="panel panel-ai-advice reveal" aria-label="AI daily advice">
             <AiAdviceWidget
               advice={props.aiAdviceResult.ok ? props.aiAdviceResult.advice : null}
               errorMessage={props.aiAdviceResult.ok ? undefined : props.aiAdviceResult.error}
             />
           </section>
 
-          {/* Row 2: Daily Summary + Weather */}
-          <section className="panel panel-summary reveal" aria-label="Daily summary">
+          <section className="panel panel-daily-sum reveal" aria-label="Daily summary">
             <DailySummaryWidget
               calendarEvents={props.calendarResult.events}
               tasks={props.tasksResult.tasks}
@@ -108,7 +107,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
             <WeatherWidget data={weatherData} errorMessage={weatherError} />
           </section>
 
-          {/* Row 3: Calendar + Gmail */}
+          {/* Row 2: Calendar | Gmail | Tasks+Notes */}
           <section className="panel panel-calendar reveal" aria-label="Today's schedule">
             <CalendarWidget
               events={props.calendarResult.events}
@@ -123,22 +122,26 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          {/* Row 4: Tasks + Quick Notes */}
-          <section className="panel panel-tasks reveal" aria-label="Google Tasks">
-            <TasksWidget
-              tasks={props.tasksResult.tasks}
-              errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
-            />
-          </section>
+          <div className="panel-right-col">
+            <section
+              className="panel panel-tasks reveal"
+              style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
+              aria-label="Google Tasks"
+            >
+              <TasksWidget
+                tasks={props.tasksResult.tasks}
+                errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
+              />
+            </section>
 
-          <section className="panel panel-notes reveal" aria-label="Quick notes">
-            <QuickNotesWidget />
-          </section>
-
-          {/* Row 5: Habit Tracker (full width) */}
-          <section className="panel panel-habits reveal" aria-label="Habit tracker">
-            <HabitTrackerWidget />
-          </section>
+            <section
+              className="panel panel-notes reveal"
+              style={{ flexShrink: 0 }}
+              aria-label="Quick notes"
+            >
+              <QuickNotesWidget />
+            </section>
+          </div>
 
         </div>
       </div>

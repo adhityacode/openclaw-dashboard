@@ -25,15 +25,17 @@ export function GmailWidget({ messages, errorMessage }: Props) {
         <p className="widget-empty">Inbox is empty</p>
       )}
 
-      <ul className="gmail-list">
-        {messages.map((msg) => (
-          <li key={msg.id} className="gmail-item" data-unread={msg.isUnread ? "true" : "false"}>
-            <span className="gmail-from">{formatFrom(msg.from)}</span>
-            <span className="gmail-subject">{msg.subject}</span>
-            <span className="gmail-snippet">{msg.snippet}</span>
-          </li>
-        ))}
-      </ul>
+      <div className="gmail-list-scroll">
+        <ul className="gmail-list">
+          {messages.map((msg) => (
+            <li key={msg.id} className="gmail-item" data-unread={msg.isUnread ? "true" : "false"}>
+              <span className="gmail-from">{formatFrom(msg.from)}</span>
+              <span className="gmail-subject">{msg.subject}</span>
+              <span className="gmail-snippet">{msg.snippet}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }

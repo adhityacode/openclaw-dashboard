@@ -32,6 +32,51 @@ function parseHeader(
   );
 }
 
+// ── AI email filter ───────────────────────────────────────────────────────────
+// Uses a small fast model — classification only, no creativity needed.
+export async function filterImportantMessages(messages: GmailMessage[]): Promise<Set<string>> {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey || messages.length === 0) return new Set(messages.map((m) => m.id));
+
+  const list = messages
+    .map((m) => `id="${m.id}" | from="${m.from}" | subject="${m.subject}" | snippet="${m.snippet.slice(0, 150)}"`)
+    .join("\n");
+
+  const prompt = `You are an email classifier. From the list below, return the IDs of HIGH-SIGNAL messages only.
+High-signal: personal messages, work emails, bills, invoices, shipping updates, security alerts, calendar invites, anything requiring a human response.
+Low-signal (exclude): newsletters, marketing, promotions, social notifications, automated digests, no-reply bulk mail, app notifications.
+
+Messages:
+${list}
+
+Respond with ONLY a raw JSON array of id strings. No explanation, no markdown.
+Example: ["id1","id2"]`;
+
+  try {
+    const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model: "llama-3.1-8b-instant",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 256,
+        temperature: 0,
+      }),
+    });
+
+    if (!res.ok) throw new Error(`Groq ${res.status}`);
+    const json = await res.json();
+    const raw: string = json.choices?.[0]?.message?.content?.trim() ?? "[]";
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error("No JSON array in response");
+    const ids = JSON.parse(match[0]) as unknown[];
+    return new Set(ids.filter((v): v is string => typeof v === "string"));
+  } catch (err) {
+    console.warn("[gmail] AI filter failed, showing all:", err);
+    return new Set(messages.map((m) => m.id));
+  }
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 export async function getGmailInbox(maxMessages = 20): Promise<GmailResult> {
   if (!process.env.GOOGLE_REFRESH_TOKEN || process.env.GOOGLE_REFRESH_TOKEN === "REPLACE_ME") {

@@ -19,7 +19,7 @@ export function AiAdviceWidget({ advice, errorMessage }: Props) {
       </div>
 
       {errorMessage && !advice && (
-        <p className="widget-empty">{errorMessage}</p>
+        <p className="widget-error" role="alert">{errorMessage}</p>
       )}
 
       {bullets.length > 0 && (

@@ -13,9 +13,11 @@ export interface WeatherData {
 }
 
 export interface HourlySlot {
-  hour: string;   // "09:00"
+  hour: string;
   temp: number;
   emoji: string;
+  isCurrent: boolean;
+  code: number;
 }
 
 export type WeatherResult =
@@ -66,19 +68,18 @@ export async function getWeather(): Promise<WeatherResult> {
     const { description, emoji } = interpretCode(cur.weather_code);
 
     // Build next 6 hourly slots from now
-    const nowHour = new Date().getHours();
     const hourlyTimes: string[] = json.hourly.time ?? [];
     const hourlyTemps: number[] = json.hourly.temperature_2m ?? [];
     const hourlyCodes: number[] = json.hourly.weather_code ?? [];
 
     const hourlyForecast: HourlySlot[] = [];
-    for (let i = 0; i < hourlyTimes.length && hourlyForecast.length < 6; i++) {
-      const slotHour = new Date(hourlyTimes[i]).getHours();
-      if (slotHour < nowHour) continue;
+    for (let i = 0; i < hourlyTimes.length && hourlyForecast.length < 24; i++) {
       hourlyForecast.push({
         hour: formatHour(hourlyTimes[i], tz),
         temp: Math.round(hourlyTemps[i]),
         emoji: interpretCode(hourlyCodes[i]).emoji,
+        isCurrent: new Date(hourlyTimes[i]).getHours() === new Date().getHours(),
+        code: hourlyCodes[i],
       });
     }
 

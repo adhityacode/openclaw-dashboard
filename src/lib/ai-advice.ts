@@ -1,7 +1,5 @@
-// Single Groq call that does two jobs at once:
-//   1. Filters raw inbox messages down to important ones (returns kept IDs)
-//   2. Generates daily advice bullets based on all context
-//
+// Daily advice — uses a capable model focused purely on actionable briefing.
+// Email filtering is handled separately in gmail.ts.
 // Requires GROQ_API_KEY in .env.local.
 
 import type { CalendarEvent } from "@/lib/calendar";
@@ -11,82 +9,90 @@ import type { WeatherData } from "@/lib/weather";
 
 export interface AiAdviceContext {
   calendarEvents: CalendarEvent[];
-  rawGmailMessages: GmailMessage[];   // unfiltered — AI decides what's important
+  gmailMessages: GmailMessage[];   // already filtered — only important ones
   tasks: TaskItem[];
   weather: WeatherData | null;
 }
 
 export type AiAdviceResult =
-  | { ok: true; advice: string; importantMessageIds: Set<string> }
-  | { ok: false; error: string; importantMessageIds: Set<string> };
+  | { ok: true; advice: string }
+  | { ok: false; error: string };
+
+// ── Prompt ────────────────────────────────────────────────────────────────────
 
 function buildPrompt(ctx: AiAdviceContext): string {
-  const lines: string[] = [];
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("en-GB", {
+    hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok",
+  });
+  const dateStr = now.toLocaleDateString("en-GB", {
+    weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Bangkok",
+  });
 
-  lines.push(
-    "You are a personal assistant. You will receive the user's daily context and do TWO things:\n" +
-    "1. Filter the inbox: from the email list, return the IDs of genuinely important messages " +
-    "(personal, work, bills, shipping, security alerts, anything requiring action). " +
-    "Exclude newsletters, marketing, promotions, social notifications, automated digests, no-reply bulk mail, spam.\n" +
-    "2. Write 3–5 short, actionable advice bullets to help the user navigate their day. " +
-    "Be specific, practical, and warm. Reference the emails, tasks, and calendar where relevant.\n"
-  );
+  const weatherStr = ctx.weather
+    ? `${ctx.weather.description}, ${ctx.weather.temperature}°C (feels like ${ctx.weather.feelsLike}°C), humidity ${ctx.weather.humidity}%, wind ${ctx.weather.windspeed} km/h`
+    : "unavailable";
 
-  if (ctx.weather) {
-    lines.push(`Weather: ${ctx.weather.description}, ${ctx.weather.temperature}°C ` +
-      `(feels like ${ctx.weather.feelsLike}°C), humidity ${ctx.weather.humidity}%, wind ${ctx.weather.windspeed} km/h.`);
-  }
+  const calendarStr = ctx.calendarEvents.length > 0
+    ? ctx.calendarEvents.map((e) => {
+        const time = e.isAllDay ? "All day" : `${e.startTime}–${e.endTime}`;
+        return `  • [${time}] ${e.title}${e.location ? ` @ ${e.location}` : ""}`;
+      }).join("\n")
+    : "  • No events today";
 
-  if (ctx.calendarEvents.length > 0) {
-    lines.push(`\nCalendar (${ctx.calendarEvents.length} event(s) today):`);
-    for (const e of ctx.calendarEvents) {
-      const time = e.isAllDay ? "All day" : `${e.startTime}–${e.endTime}`;
-      lines.push(`  - ${time}: ${e.title}${e.location ? ` @ ${e.location}` : ""}`);
-    }
-  } else {
-    lines.push("\nCalendar: No events today.");
-  }
+  const tasksStr = ctx.tasks.length > 0
+    ? ctx.tasks.map((t) => {
+        const flag = t.isOverdue ? " ⚠ OVERDUE" : t.due ? ` (due ${t.due.slice(0, 10)})` : "";
+        return `  • ${t.title}${flag} [${t.listTitle}]`;
+      }).join("\n")
+    : "  • No pending tasks";
 
-  if (ctx.tasks.length > 0) {
-    const overdue = ctx.tasks.filter((t) => t.isOverdue);
-    const upcoming = ctx.tasks.filter((t) => !t.isOverdue).slice(0, 5);
-    lines.push(`\nTasks (${ctx.tasks.length} pending, ${overdue.length} overdue):`);
-    for (const t of [...overdue, ...upcoming]) {
-      const tag = t.isOverdue ? " [OVERDUE]" : t.due ? ` (due ${t.due.slice(0, 10)})` : "";
-      lines.push(`  - ${t.title}${tag} [${t.listTitle}]`);
-    }
-  } else {
-    lines.push("\nTasks: No pending tasks.");
-  }
+  const emailStr = ctx.gmailMessages.length > 0
+    ? ctx.gmailMessages.map((m) =>
+        `  • from="${m.from}" | subject="${m.subject}" | snippet="${m.snippet.slice(0, 150)}"`
+      ).join("\n")
+    : "  • No important emails";
 
-  if (ctx.rawGmailMessages.length > 0) {
-    lines.push(`\nInbox (${ctx.rawGmailMessages.length} messages — filter these):`);
-    for (const m of ctx.rawGmailMessages) {
-      lines.push(`  - id=${m.id} | from=${m.from} | subject=${m.subject} | snippet=${m.snippet.slice(0, 100)}`);
-    }
-  } else {
-    lines.push("\nInbox: Empty.");
-  }
+  return `You are a sharp personal assistant. Current time: ${timeStr}, ${dateStr}.
 
-  lines.push(`
-Respond with ONLY valid JSON in this exact shape, no markdown, no explanation:
-{
-  "importantIds": ["id1", "id2"],
-  "advice": "• bullet one\\n• bullet two\\n• bullet three"
-}`);
+Write exactly 3–5 bullet points as a daily playbook for the user.
 
-  return lines.join("\n");
+Rules:
+- Ground every bullet in the actual data — no generic advice.
+- Lead with the most time-sensitive item (overdue tasks, imminent meetings, weather impact).
+- If an important email relates to a task or meeting, connect them explicitly.
+- Be specific: name the event, task, or sender. Each bullet ≤ 20 words.
+- Tone: warm, direct, no fluff.
+- Use • as the bullet character. No headers, no markdown bold.
+
+<weather>
+${weatherStr}
+</weather>
+
+<calendar>
+${calendarStr}
+</calendar>
+
+<tasks>
+${tasksStr}
+</tasks>
+
+<important_emails>
+${emailStr}
+</important_emails>
+
+Respond with ONLY the bullet list. No preamble, no JSON, no explanation.`;
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// ── Main export ───────────────────────────────────────────────────────────────
+
 export async function getAiAdvice(ctx: AiAdviceContext): Promise<AiAdviceResult> {
   const apiKey = process.env.GROQ_API_KEY;
-  const fallbackIds = new Set(ctx.rawGmailMessages.map((m) => m.id));
-
-  if (!apiKey) {
-    return { ok: false, error: "GROQ_API_KEY not configured.", importantMessageIds: fallbackIds };
-  }
+  if (!apiKey) return { ok: false, error: "GROQ_API_KEY not configured." };
 
   const prompt = buildPrompt(ctx);
 
@@ -103,8 +109,8 @@ export async function getAiAdvice(ctx: AiAdviceContext): Promise<AiAdviceResult>
         body: JSON.stringify({
           model: process.env.GROQ_MODEL ?? "llama-3.3-70b-versatile",
           messages: [{ role: "user", content: prompt }],
-          max_tokens: 600,
-          temperature: 0.7,
+          max_tokens: 400,
+          temperature: 0.2,
         }),
         next: { revalidate: 0 },
       });
@@ -116,33 +122,18 @@ export async function getAiAdvice(ctx: AiAdviceContext): Promise<AiAdviceResult>
       }
 
       const json = await res.json();
-      const raw: string = json.choices?.[0]?.message?.content?.trim() ?? "";
-      if (!raw) throw new Error("Empty response from Groq");
+      const advice: string = json.choices?.[0]?.message?.content?.trim() ?? "";
+      if (!advice || !advice.includes("•")) throw new Error("Missing or malformed advice");
 
-      // Extract JSON even if model wraps it in backticks
-      const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) throw new Error("No JSON object in response");
-
-      const parsed = JSON.parse(match[0]) as { importantIds?: unknown; advice?: unknown };
-
-      const importantIds = Array.isArray(parsed.importantIds)
-        ? new Set(parsed.importantIds.filter((v): v is string => typeof v === "string"))
-        : fallbackIds;
-
-      const advice = typeof parsed.advice === "string" && parsed.advice.trim()
-        ? parsed.advice.trim()
-        : null;
-
-      if (!advice) throw new Error("Missing advice in response");
-
-      return { ok: true, advice, importantMessageIds: importantIds };
+      return { ok: true, advice };
     } catch (err) {
       if (attempt === 2) {
-        console.warn("[ai-advice] Failed:", err);
-        return { ok: false, error: "AI advice unavailable.", importantMessageIds: fallbackIds };
+        const msg = err instanceof Error ? err.message : String(err);
+        console.warn("[ai-advice] Final failure:", err);
+        return { ok: false, error: `AI advice unavailable: ${msg}` };
       }
     }
   }
 
-  return { ok: false, error: "AI advice unavailable.", importantMessageIds: fallbackIds };
+  return { ok: false, error: "AI advice unavailable." };
 }
