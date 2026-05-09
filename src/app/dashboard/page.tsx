@@ -11,6 +11,7 @@ import { QuickNotesWidget } from "@/components/QuickNotesWidget";
 import { HabitTrackerWidget } from "@/components/HabitTrackerWidget";
 import { DailySummaryWidget } from "@/components/DailySummaryWidget";
 import { AiAdviceWidget } from "@/components/AiAdviceWidget";
+import WhatsAppWidget from "@/components/WhatsAppWidget";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,6 +61,13 @@ export default async function DashboardPage() {
           />
         </section>
 
+        <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+          <TasksWidget
+            tasks={tasksResult.tasks}
+            errorMessage={tasksResult.ok ? undefined : tasksResult.error}
+          />
+        </section>
+
         <section className="panel panel-calendar reveal" aria-label="Today&apos;s schedule">
           <CalendarWidget
             events={calendarResult.events}
@@ -74,11 +82,8 @@ export default async function DashboardPage() {
           />
         </section>
 
-        <section className="panel panel-tasks reveal" aria-label="Google Tasks">
-          <TasksWidget
-            tasks={tasksResult.tasks}
-            errorMessage={tasksResult.ok ? undefined : tasksResult.error}
-          />
+        <section className="panel panel-whatsapp reveal" aria-label="WhatsApp messages">
+          <WhatsAppWidget />
         </section>
 
         <section className="panel panel-notes reveal" aria-label="Quick notes">

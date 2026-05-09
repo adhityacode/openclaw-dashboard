@@ -88,7 +88,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
       >
         <div className="personal-grid">
 
-          {/* Row 1: Weather | AI Advice (span 2) | Daily Summary */}
+          {/* Row 1: Weather | AI Advice | Daily Summary | Tasks */}
           <section className="panel panel-weather reveal" aria-label="Weather">
             <WeatherWidget data={weatherData} errorMessage={weatherError} />
           </section>
@@ -108,7 +108,14 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          {/* Row 2: Calendar (span 2) | Gmail | Tasks */}
+          <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+            <TasksWidget
+              tasks={props.tasksResult.tasks}
+              errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
+            />
+          </section>
+
+          {/* Row 2: Calendar (span 2) | Gmail (span 2) */}
           <section className="panel panel-calendar reveal" aria-label="Today's schedule">
             <CalendarWidget
               events={props.calendarResult.events}
@@ -120,13 +127,6 @@ export function DashboardTabs(props: DashboardTabsProps) {
             <GmailWidget
               messages={props.gmailResult.messages}
               errorMessage={props.gmailResult.ok ? undefined : props.gmailResult.error}
-            />
-          </section>
-
-          <section className="panel panel-tasks reveal" aria-label="Google Tasks">
-            <TasksWidget
-              tasks={props.tasksResult.tasks}
-              errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
             />
           </section>
 
