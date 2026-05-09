@@ -164,40 +164,42 @@ h1 {
   overflow: hidden;
 }
 
-/* ── Personal grid: 3-col × 2-row landscape, fills height ── */
+/* ── Personal grid: 3-row × 4-col landscape ── */
 .personal-grid {
   display: grid;
   height: 100%;
   min-height: 0;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: auto 1fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
   grid-template-areas:
-    "ai-advice  daily-sum  weather"
-    "calendar   gmail      right-col";
+    "weather    ai-advice  ai-advice  daily-sum"
+    "calendar   calendar   gmail      tasks"
+    "notes      notes      habits     habits";
   gap: 10px;
 }
 
-/* Row 1 panels — auto height (size to content) */
-.panel-ai-advice { grid-area: ai-advice;  overflow: hidden; display: flex; flex-direction: column; }
-.panel-daily-sum { grid-area: daily-sum;  overflow: hidden; display: flex; flex-direction: column; }
-.panel-weather   { grid-area: weather;    overflow: hidden; display: flex; flex-direction: column; }
+.panel-weather   { grid-area: weather;   overflow: hidden; display: flex; flex-direction: column; }
+.panel-ai-advice { grid-area: ai-advice; overflow: hidden; display: flex; flex-direction: column; }
+.panel-daily-sum { grid-area: daily-sum; overflow: hidden; display: flex; flex-direction: column; }
+.panel-calendar  { grid-area: calendar;  overflow: hidden; display: flex; flex-direction: column; }
+.panel-gmail     { grid-area: gmail;     overflow: hidden; display: flex; flex-direction: column; }
+.panel-tasks     { grid-area: tasks;     overflow: hidden; display: flex; flex-direction: column; }
+.panel-notes     { grid-area: notes;     overflow: hidden; display: flex; flex-direction: column; }
+.panel-habits    { grid-area: habits;    overflow: hidden; display: flex; flex-direction: column; }
 
-/* Row 2 panels — fill remaining height (1fr) */
-.panel-calendar  { grid-area: calendar;   overflow: hidden; display: flex; flex-direction: column; }
-.panel-gmail     { grid-area: gmail;      overflow: hidden; display: flex; flex-direction: column; }
-
-/* Right column: tasks + notes stacked vertically */
-.panel-right-col {
-  grid-area: right-col;
+/* /dashboard route — widgets only, no chrome */
+.dashboard-page {
+  height: 100dvh;
   overflow: hidden;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  min-height: 0;
 }
 
-.panel-tasks { overflow: hidden; display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.panel-notes { overflow: hidden; display: flex; flex-direction: column; flex-shrink: 0; }
+.dashboard-page .personal-grid {
+  flex: 1;
+  min-height: 0;
+}
 
 /* ── Scrollable widget bodies ────────────────── */
 .cal-widget,
