@@ -87,7 +87,11 @@ export function DashboardTabs(props: DashboardTabsProps) {
       >
         <div className="personal-grid">
 
-          {/* Row 1: AI Advice | Daily Summary | Weather */}
+          {/* Row 1: Weather | AI Advice (span 2) | Daily Summary */}
+          <section className="panel panel-weather reveal" aria-label="Weather">
+            <WeatherWidget data={weatherData} errorMessage={weatherError} />
+          </section>
+
           <section className="panel panel-ai-advice reveal" aria-label="AI daily advice">
             <AiAdviceWidget
               advice={props.aiAdviceResult.ok ? props.aiAdviceResult.advice : null}
@@ -103,11 +107,7 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          <section className="panel panel-weather reveal" aria-label="Weather">
-            <WeatherWidget data={weatherData} errorMessage={weatherError} />
-          </section>
-
-          {/* Row 2: Calendar | Gmail | Tasks+Notes */}
+          {/* Row 2: Calendar (span 2) | Gmail | Tasks */}
           <section className="panel panel-calendar reveal" aria-label="Today's schedule">
             <CalendarWidget
               events={props.calendarResult.events}
@@ -122,26 +122,21 @@ export function DashboardTabs(props: DashboardTabsProps) {
             />
           </section>
 
-          <div className="panel-right-col">
-            <section
-              className="panel panel-tasks reveal"
-              style={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}
-              aria-label="Google Tasks"
-            >
-              <TasksWidget
-                tasks={props.tasksResult.tasks}
-                errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
-              />
-            </section>
+          <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+            <TasksWidget
+              tasks={props.tasksResult.tasks}
+              errorMessage={props.tasksResult.ok ? undefined : props.tasksResult.error}
+            />
+          </section>
 
-            <section
-              className="panel panel-notes reveal"
-              style={{ flexShrink: 0 }}
-              aria-label="Quick notes"
-            >
-              <QuickNotesWidget />
-            </section>
-          </div>
+          {/* Row 3: Notes (span 2) | Habits (span 2) */}
+          <section className="panel panel-notes reveal" aria-label="Quick notes">
+            <QuickNotesWidget />
+          </section>
+
+          <section className="panel panel-habits reveal" aria-label="Habit tracker">
+            <HabitTrackerWidget />
+          </section>
 
         </div>
       </div>
