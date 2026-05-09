@@ -33,6 +33,8 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="OpenClaw" />
+        <link rel="stylesheet" href="/react-grid-layout.css" />
+        <link rel="stylesheet" href="/react-resizable.css" />
       </head>
       <body className={`${spaceGrotesk.variable} ${ibmPlexMono.variable}`} suppressHydrationWarning>
         {children}

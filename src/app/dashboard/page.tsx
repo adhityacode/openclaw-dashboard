@@ -12,6 +12,7 @@ import { HabitTrackerWidget } from "@/components/HabitTrackerWidget";
 import { DailySummaryWidget } from "@/components/DailySummaryWidget";
 import { AiAdviceWidget } from "@/components/AiAdviceWidget";
 import WhatsAppWidget from "@/components/WhatsAppWidget";
+import { PersonalGrid } from "@/components/PersonalGrid";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -40,13 +41,15 @@ export default async function DashboardPage() {
 
   return (
     <main className="dashboard-page">
-      <div className="personal-grid">
+      <PersonalGrid widgetIds={["weather","ai-advice","daily-sum","tasks","calendar","gmail","whatsapp","notes","habits"]}>
 
         <section className="panel panel-weather reveal" aria-label="Weather">
+          <div className="widget-drag-handle" />
           <WeatherWidget data={weatherData} errorMessage={weatherError} />
         </section>
 
         <section className="panel panel-ai-advice reveal" aria-label="AI daily advice">
+          <div className="widget-drag-handle" />
           <AiAdviceWidget
             advice={aiResult.ok ? aiResult.advice : null}
             errorMessage={aiResult.ok ? undefined : aiResult.error}
@@ -54,6 +57,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel panel-daily-sum reveal" aria-label="Daily summary">
+          <div className="widget-drag-handle" />
           <DailySummaryWidget
             calendarEvents={calendarResult.events}
             tasks={tasksResult.tasks}
@@ -62,6 +66,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel panel-tasks reveal" aria-label="Google Tasks">
+          <div className="widget-drag-handle" />
           <TasksWidget
             tasks={tasksResult.tasks}
             errorMessage={tasksResult.ok ? undefined : tasksResult.error}
@@ -69,6 +74,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel panel-calendar reveal" aria-label="Today&apos;s schedule">
+          <div className="widget-drag-handle" />
           <CalendarWidget
             events={calendarResult.events}
             errorMessage={calendarResult.ok ? undefined : calendarResult.error}
@@ -76,6 +82,7 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel panel-gmail reveal" aria-label="Gmail inbox">
+          <div className="widget-drag-handle" />
           <GmailWidget
             messages={filteredMessages}
             errorMessage={gmailResult.ok ? undefined : gmailResult.error}
@@ -83,18 +90,21 @@ export default async function DashboardPage() {
         </section>
 
         <section className="panel panel-whatsapp reveal" aria-label="WhatsApp messages">
+          <div className="widget-drag-handle" />
           <WhatsAppWidget />
         </section>
 
         <section className="panel panel-notes reveal" aria-label="Quick notes">
+          <div className="widget-drag-handle" />
           <QuickNotesWidget />
         </section>
 
         <section className="panel panel-habits reveal" aria-label="Habit tracker">
+          <div className="widget-drag-handle" />
           <HabitTrackerWidget />
         </section>
 
-      </div>
+      </PersonalGrid>
     </main>
   );
 }

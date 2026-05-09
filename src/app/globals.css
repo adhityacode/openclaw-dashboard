@@ -178,46 +178,73 @@ h1 {
 .tab-content {
   flex: 1;
   min-height: 0;
+  overflow-y: auto;  /* allows RGL to scroll in portrait stacking */
+}
+
+/* ── Personal grid: replaced by react-grid-layout (PersonalGrid.tsx) ── */
+/* Old static .personal-grid and grid-area rules removed.                */
+/* Positioning is now handled by .react-grid-layout / .react-grid-item.  */
+
+/* ── react-grid-layout items ─────────────────── */
+.rgl-item {
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.rgl-item > .panel {
+  height: 100%;
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
-/* ── Personal grid: 3-row × 4-col landscape ── */
-.personal-grid {
-  display: grid;
-  height: 100%;
-  min-height: 0;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: auto 1fr auto;
-  grid-template-areas:
-    "weather    ai-advice  daily-sum  tasks"
-    "calendar   calendar   gmail      gmail"
-    "whatsapp   notes      habits     habits";
-  gap: 10px;
+/* Drag handle: a small grab bar at the top of each panel */
+.widget-drag-handle {
+  height: 20px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.3;
+  transition: opacity 150ms;
+}
+.widget-drag-handle:hover { opacity: 0.7; }
+.widget-drag-handle::after {
+  content: "⠿";
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 2px;
 }
 
-.panel-weather   { grid-area: weather;   overflow: hidden; display: flex; flex-direction: column; }
-.panel-ai-advice { grid-area: ai-advice; overflow: hidden; display: flex; flex-direction: column; }
-.panel-daily-sum { grid-area: daily-sum; overflow: hidden; display: flex; flex-direction: column; }
-.panel-calendar  { grid-area: calendar;  overflow: hidden; display: flex; flex-direction: column; }
-.panel-gmail     { grid-area: gmail;     overflow: hidden; display: flex; flex-direction: column; }
-.panel-tasks     { grid-area: tasks;     overflow: hidden; display: flex; flex-direction: column; }
-.panel-notes     { grid-area: notes;     overflow: hidden; display: flex; flex-direction: column; }
-.panel-habits    { grid-area: habits;    overflow: hidden; display: flex; flex-direction: column; }
-.panel-whatsapp  { grid-area: whatsapp;  overflow: hidden; display: flex; flex-direction: column; }
+/* Resize handle — RGL already shows it on hover; bump visibility slightly */
+.react-resizable-handle {
+  opacity: 0.3;
+  transition: opacity 150ms;
+}
+.react-resizable-handle:hover { opacity: 0.8; }
+
+/* Keep per-panel flex/overflow rules for internal widget layout */
+.panel-weather   { overflow: hidden; display: flex; flex-direction: column; }
+.panel-ai-advice { overflow: hidden; display: flex; flex-direction: column; }
+.panel-daily-sum { overflow: hidden; display: flex; flex-direction: column; }
+.panel-calendar  { overflow: hidden; display: flex; flex-direction: column; }
+.panel-gmail     { overflow: hidden; display: flex; flex-direction: column; }
+.panel-tasks     { overflow: hidden; display: flex; flex-direction: column; }
+.panel-notes     { overflow: hidden; display: flex; flex-direction: column; }
+.panel-habits    { overflow: hidden; display: flex; flex-direction: column; }
+.panel-whatsapp  { overflow: hidden; display: flex; flex-direction: column; }
 
 /* /dashboard route — widgets only, no chrome */
 .dashboard-page {
   height: 100dvh;
-  overflow: hidden;
-  padding: 14px 18px;
-  display: flex;
-  flex-direction: column;
+  overflow-y: auto;  /* allow scroll for portrait stacking */
+  padding: 0;
 }
 
-.dashboard-page .personal-grid {
-  flex: 1;
-  min-height: 0;
-}
+/* No longer needed — PersonalGrid fills the page directly */
+/* .dashboard-page .personal-grid { flex: 1; min-height: 0; } */
 
 /* ── Scrollable widget bodies ────────────────── */
 .cal-widget,
